@@ -8,6 +8,7 @@ import os
 import sys
 from flask import Flask
 from flask_talisman import Talisman
+from flask_cors import CORS
 from service import config
 from service.common import log_handlers
 
@@ -21,6 +22,9 @@ if app.config.get("TESTING") or os.getenv("DISABLE_HTTPS") == "True":
     talisman = Talisman(app, force_https=False)
 else:
     talisman = Talisman(app)
+
+# Inisialisasi Flask-CORS untuk mengizinkan Cross-Origin Resource Sharing global
+CORS(app)
 
 # Import the routes After the Flask app is created
 # pylint: disable=wrong-import-position, cyclic-import, wrong-import-order

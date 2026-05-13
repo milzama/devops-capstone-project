@@ -19,6 +19,9 @@ DATABASE_URI = os.getenv(
 
 BASE_URL = "/accounts"
 
+# Konfigurasi lingkungan untuk mensimulasikan request HTTPS aman
+HTTPS_ENVIRON = {'wsgi.url_scheme': 'https'}
+
 
 ######################################################################
 #  T E S T   C A S E S
@@ -206,3 +209,23 @@ class TestAccountService(TestCase):
         # 4. Ambil data JSON dan pastikan jumlahnya ada 3 sesuai data yang dibuat
         data = resp.get_json()
         self.assertEqual(len(data), 3)
+
+    def test_security_headers(self):
+        """Seharusnya mengembalikan header keamanan"""
+        response = self.client.get('/', environ_overrides=HTTPS_ENVIRON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        headers = {
+            'X-Frame-Options': 'SAMEORIGIN',
+            'X-Content-Type-Options': 'nosniff',
+            'Content-Security-Policy': "default-src 'self'; object-src 'none'",
+            'Referrer-Policy': 'strict-origin-when-cross-origin'
+        }
+        for key, value in headers.items():
+            self.assertEqual(response.headers.get(key), value)
+
+    def test_cors_security(self):
+        """Seharusnya mengembalikan header CORS"""
+        response = self.client.get('/', environ_overrides=HTTPS_ENVIRON)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Periksa header CORS
+        self.assertEqual(response.headers.get('Access-Control-Allow-Origin'), '*')
