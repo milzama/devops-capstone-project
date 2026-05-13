@@ -73,8 +73,7 @@ def list_accounts():
     """
     app.logger.info("Request to list Accounts")
 
-    # 1. Ambil semua data akun dari database menggunakan metode .all() bawaan
-    # model
+    # 1. Ambil semua data akun dari database menggunakan metode .all() bawaan model
     accounts = Account.all()
 
     # 2. Ambil objek akun lalu serialize menjadi list of dictionaries
@@ -157,8 +156,7 @@ def delete_accounts(account_id):
     if account:
         account.delete()
 
-    # 3. Kembalikan respons kosong (make_response) bersama kode status 204 NO
-    # CONTENT
+    # 3. Kembalikan respons kosong (make_response) bersama kode status 204 NO CONTENT
     return make_response("", status.HTTP_204_NO_CONTENT)
 
 
@@ -177,3 +175,16 @@ def check_content_type(media_type):
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content-Type must be {media_type}",
     )
+
+
+######################################################################
+#  S E C U R I T Y   H E A D E R S
+######################################################################
+@app.after_request
+def add_security_headers(response):
+    """Menambahkan header keamanan ke setiap respons HTTP"""
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['Content-Security-Policy'] = "default-src 'self'; object-src 'none'"
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
