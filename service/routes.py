@@ -12,7 +12,7 @@ from . import app  # Import Flask application
 
 ############################################################
 # Health Endpoint
-############################
+############################################################
 @app.route("/health")
 def health():
     """Health Status"""
@@ -124,8 +124,23 @@ def update_accounts(account_id):
 ######################################################################
 # DELETE AN ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["DELETE"])
+def delete_accounts(account_id):
+    """
+    Delete an Account
+    This endpoint will delete an Account based on the account_id that is requested
+    """
+    app.logger.info("Request to delete an Account with id: %s", account_id)
 
-# ... place your code here to DELETE an account ...
+    # 1. Cari akun berdasarkan id di database
+    account = Account.find(account_id)
+    
+    # 2. Jika akun ditemukan, lakukan penghapusan
+    if account:
+        account.delete()
+
+    # 3. Kembalikan respons kosong (make_response) bersama kode status 204 NO CONTENT
+    return make_response("", status.HTTP_204_NO_CONTENT)
 
 
 ######################################################################

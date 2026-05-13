@@ -176,3 +176,18 @@ class TestAccountService(TestCase):
         
         # 3. Pastikan sistem menolak dengan status 404 NOT FOUND
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_account(self):
+        """It should Delete an Account"""
+        # 1. Buat akun dummy menggunakan helper method
+        account = self._create_accounts(1)[0]
+        
+        # 2. Kirim DELETE request ke endpoint /accounts/<id>
+        resp = self.client.delete(f"{BASE_URL}/{account.id}")
+        
+        # 3. Pastikan status responsnya adalah 204 NO CONTENT
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # 4. Pastikan data benar-benar terhapus dengan melakukan GET kembali ke ID yang sama
+        get_resp = self.client.get(f"{BASE_URL}/{account.id}")
+        self.assertEqual(get_resp.status_code, status.HTTP_404_NOT_FOUND)
