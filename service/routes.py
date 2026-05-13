@@ -50,10 +50,13 @@ def create_accounts():
     account.deserialize(request.get_json())
     account.create()
     message = account.serialize()
-    
+
     # Mengaktifkan lokasi URL yang benar setelah get_accounts diimplementasikan
-    location_url = url_for("get_accounts", account_id=account.id, _external=True)
-    
+    location_url = url_for(
+        "get_accounts",
+        account_id=account.id,
+        _external=True)
+
     return make_response(
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
@@ -70,9 +73,10 @@ def list_accounts():
     """
     app.logger.info("Request to list Accounts")
 
-    # 1. Ambil semua data akun dari database menggunakan metode .all() bawaan model
+    # 1. Ambil semua data akun dari database menggunakan metode .all() bawaan
+    # model
     accounts = Account.all()
-    
+
     # 2. Ambil objek akun lalu serialize menjadi list of dictionaries
     account_list = [account.serialize() for account in accounts]
 
@@ -95,7 +99,7 @@ def get_accounts(account_id):
     account = Account.find(account_id)
     if not account:
         abort(
-            status.HTTP_404_NOT_FOUND, 
+            status.HTTP_404_NOT_FOUND,
             f"Account with id [{account_id}] could not be found."
         )
 
@@ -118,7 +122,7 @@ def update_accounts(account_id):
     account = Account.find(account_id)
     if not account:
         abort(
-            status.HTTP_404_NOT_FOUND, 
+            status.HTTP_404_NOT_FOUND,
             f"Account with id [{account_id}] could not be found."
         )
 
@@ -127,7 +131,7 @@ def update_accounts(account_id):
 
     # 3. Perbarui data model dengan data baru yang dikirim dari request body
     account.deserialize(request.get_json())
-    
+
     # 4. Simpan perubahan tersebut ke database
     account.update()
 
@@ -148,12 +152,13 @@ def delete_accounts(account_id):
 
     # 1. Cari akun berdasarkan id di database
     account = Account.find(account_id)
-    
+
     # 2. Jika akun ditemukan, lakukan penghapusan
     if account:
         account.delete()
 
-    # 3. Kembalikan respons kosong (make_response) bersama kode status 204 NO CONTENT
+    # 3. Kembalikan respons kosong (make_response) bersama kode status 204 NO
+    # CONTENT
     return make_response("", status.HTTP_204_NO_CONTENT)
 
 
