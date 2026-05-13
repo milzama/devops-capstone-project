@@ -191,3 +191,18 @@ class TestAccountService(TestCase):
         # 4. Pastikan data benar-benar terhapus dengan melakukan GET kembali ke ID yang sama
         get_resp = self.client.get(f"{BASE_URL}/{account.id}")
         self.assertEqual(get_resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_account_list(self):
+        """It should Get a list of Accounts"""
+        # 1. Buat 3 akun dummy menggunakan helper method
+        self._create_accounts(3)
+        
+        # 2. Kirim GET request ke endpoint /accounts
+        resp = self.client.get(BASE_URL)
+        
+        # 3. Pastikan status responsnya adalah 200 OK
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        
+        # 4. Ambil data JSON dan pastikan jumlahnya ada 3 sesuai data yang dibuat
+        data = resp.get_json()
+        self.assertEqual(len(data), 3)

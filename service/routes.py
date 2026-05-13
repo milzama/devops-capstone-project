@@ -29,7 +29,7 @@ def index():
         jsonify(
             name="Account REST API Service",
             version="1.0",
-            # paths=url_for("list_accounts", _external=True),
+            paths=url_for("list_accounts", _external=True),
         ),
         status.HTTP_200_OK,
     )
@@ -62,8 +62,22 @@ def create_accounts():
 ######################################################################
 # LIST ALL ACCOUNTS
 ######################################################################
+@app.route("/accounts", methods=["GET"])
+def list_accounts():
+    """
+    List all Accounts
+    This endpoint will list all Accounts currently stored in the database
+    """
+    app.logger.info("Request to list Accounts")
 
-# ... place your code here to LIST accounts ...
+    # 1. Ambil semua data akun dari database menggunakan metode .all() bawaan model
+    accounts = Account.all()
+    
+    # 2. Ambil objek akun lalu serialize menjadi list of dictionaries
+    account_list = [account.serialize() for account in accounts]
+
+    # 3. Kembalikan list tersebut dalam format JSON bersama status 200 OK
+    return jsonify(account_list), status.HTTP_200_OK
 
 
 ######################################################################
