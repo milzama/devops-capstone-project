@@ -141,3 +141,38 @@ class TestAccountService(TestCase):
         
         # Memastikan sistem merespons dengan status 404 NOT FOUND
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_account(self):
+        """It should Update an existing Account"""
+        # 1. Buat akun dummy terlebih dahulu menggunakan helper
+        test_account = self._create_accounts(1)[0]
+        new_account_data = test_account.serialize()
+        
+        # 2. Ubah data nama pada objek dummy tersebut
+        new_account_data["name"] = "Nama Baru Terupdate"
+        
+        # 3. Kirim PUT request ke endpoint /accounts/<id>
+        resp = self.client.put(
+            f"{BASE_URL}/{test_account.id}",
+            json=new_account_data,
+            content_type="application/json"
+        )
+        
+        # 4. Pastikan status responsnya adalah 200 OK
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        
+        # 5. Pastikan data yang dikembalikan sudah berubah sesuai update
+        updated_account = resp.get_json()
+        self.assertEqual(updated_account["name"], "Nama Baru Terupdate")
+
+    def test_update_account_not_found(self):
+        """It should not Update an Account that is not found"""
+        # 1. Siapkan data update dummy
+        account = AccountFactory()
+        data = account.serialize()
+        
+        # 2. Kirim PUT request ke ID 0 yang tidak ada di database
+        resp = self.client.put(f"{BASE_URL}/0", json=data, content_type="application/json")
+        
+        # 3. Pastikan sistem menolak dengan status 404 NOT FOUND
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)

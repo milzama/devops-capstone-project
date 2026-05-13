@@ -12,7 +12,7 @@ from . import app  # Import Flask application
 
 ############################################################
 # Health Endpoint
-############################################################
+############################
 @app.route("/health")
 def health():
     """Health Status"""
@@ -92,8 +92,33 @@ def get_accounts(account_id):
 ######################################################################
 # UPDATE AN EXISTING ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["PUT"])
+def update_accounts(account_id):
+    """
+    Updates an Existing Account
+    This endpoint will update an Account based on the account_id and data posted
+    """
+    app.logger.info("Request to update an Account with id: %s", account_id)
 
-# ... place your code here to UPDATE an account ...
+    # 1. Cari akun berdasarkan id di database
+    account = Account.find(account_id)
+    if not account:
+        abort(
+            status.HTTP_404_NOT_FOUND, 
+            f"Account with id [{account_id}] could not be found."
+        )
+
+    # 2. Validasi format konten yang dikirim (harus application/json)
+    check_content_type("application/json")
+
+    # 3. Perbarui data model dengan data baru yang dikirim dari request body
+    account.deserialize(request.get_json())
+    
+    # 4. Simpan perubahan tersebut ke database
+    account.update()
+
+    # 5. Kembalikan data yang diperbarui beserta kode 200 OK
+    return jsonify(account.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
