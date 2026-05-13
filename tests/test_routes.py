@@ -38,6 +38,7 @@ class TestAccountService(TestCase):
     @classmethod
     def tearDownClass(cls):
         """Runs once before test suite"""
+        pass
 
     def setUp(self):
         """Runs before each test"""
@@ -123,4 +124,85 @@ class TestAccountService(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
 
-    # ADD YOUR TEST CASES HERE ...
+    def test_get_account(self):
+        """It should Read a single Account"""
+        account = self._create_accounts(1)[0]
+        resp = self.client.get(
+            f"{BASE_URL}/{account.id}", content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["name"], account.name)
+
+    def test_get_account_not_found(self):
+        """It should not Read an Account that is not found"""
+        # Melakukan GET request ke /accounts/0 (ID 0 diasumsikan tidak pernah ada)
+        resp = self.client.get(f"{BASE_URL}/0")
+        
+        # Memastikan sistem merespons dengan status 404 NOT FOUND
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_update_account(self):
+        """It should Update an existing Account"""
+        # 1. Buat akun dummy terlebih dahulu menggunakan helper
+        test_account = self._create_accounts(1)[0]
+        new_account_data = test_account.serialize()
+        
+        # 2. Ubah data nama pada objek dummy tersebut
+        new_account_data["name"] = "Nama Baru Terupdate"
+        
+        # 3. Kirim PUT request ke endpoint /accounts/<id>
+        resp = self.client.put(
+            f"{BASE_URL}/{test_account.id}",
+            json=new_account_data,
+            content_type="application/json"
+        )
+        
+        # 4. Pastikan status responsnya adalah 200 OK
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        
+        # 5. Pastikan data yang dikembalikan sudah berubah sesuai update
+        updated_account = resp.get_json()
+        self.assertEqual(updated_account["name"], "Nama Baru Terupdate")
+
+    def test_update_account_not_found(self):
+        """It should not Update an Account that is not found"""
+        # 1. Siapkan data update dummy
+        account = AccountFactory()
+        data = account.serialize()
+        
+        # 2. Kirim PUT request ke ID 0 yang tidak ada di database
+        resp = self.client.put(f"{BASE_URL}/0", json=data, content_type="application/json")
+        
+        # 3. Pastikan sistem menolak dengan status 404 NOT FOUND
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_account(self):
+        """It should Delete an Account"""
+        # 1. Buat akun dummy menggunakan helper method
+        account = self._create_accounts(1)[0]
+        
+        # 2. Kirim DELETE request ke endpoint /accounts/<id>
+        resp = self.client.delete(f"{BASE_URL}/{account.id}")
+        
+        # 3. Pastikan status responsnya adalah 204 NO CONTENT
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        
+        # 4. Pastikan data benar-benar terhapus dengan melakukan GET kembali ke ID yang sama
+        get_resp = self.client.get(f"{BASE_URL}/{account.id}")
+        self.assertEqual(get_resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_account_list(self):
+        """It should Get a list of Accounts"""
+        # 1. Buat 3 akun dummy menggunakan helper method
+        self._create_accounts(3)
+        
+        # 2. Kirim GET request ke endpoint /accounts
+        resp = self.client.get(BASE_URL)
+        
+        # 3. Pastikan status responsnya adalah 200 OK
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        
+        # 4. Ambil data JSON dan pastikan jumlahnya ada 3 sesuai data yang dibuat
+        data = resp.get_json()
+        self.assertEqual(len(data), 3)

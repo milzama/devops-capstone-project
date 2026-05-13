@@ -29,7 +29,7 @@ def index():
         jsonify(
             name="Account REST API Service",
             version="1.0",
-            # paths=url_for("list_accounts", _external=True),
+            paths=url_for("list_accounts", _external=True),
         ),
         status.HTTP_200_OK,
     )
@@ -50,39 +50,111 @@ def create_accounts():
     account.deserialize(request.get_json())
     account.create()
     message = account.serialize()
-    # Uncomment once get_accounts has been implemented
-    # location_url = url_for("get_accounts", account_id=account.id, _external=True)
-    location_url = "/"  # Remove once get_accounts has been implemented
+    
+    # Mengaktifkan lokasi URL yang benar setelah get_accounts diimplementasikan
+    location_url = url_for("get_accounts", account_id=account.id, _external=True)
+    
     return make_response(
         jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     )
 
+
 ######################################################################
 # LIST ALL ACCOUNTS
 ######################################################################
+@app.route("/accounts", methods=["GET"])
+def list_accounts():
+    """
+    List all Accounts
+    This endpoint will list all Accounts currently stored in the database
+    """
+    app.logger.info("Request to list Accounts")
 
-# ... place you code here to LIST accounts ...
+    # 1. Ambil semua data akun dari database menggunakan metode .all() bawaan model
+    accounts = Account.all()
+    
+    # 2. Ambil objek akun lalu serialize menjadi list of dictionaries
+    account_list = [account.serialize() for account in accounts]
+
+    # 3. Kembalikan list tersebut dalam format JSON bersama status 200 OK
+    return jsonify(account_list), status.HTTP_200_OK
 
 
 ######################################################################
 # READ AN ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["GET"])
+def get_accounts(account_id):
+    """
+    Reads an Account
+    This endpoint will read an Account based on the account_id that is requested
+    """
+    app.logger.info("Request to read an Account with id: %s", account_id)
 
-# ... place you code here to READ an account ...
+    # Mencari account berdasarkan id di database
+    account = Account.find(account_id)
+    if not account:
+        abort(
+            status.HTTP_404_NOT_FOUND, 
+            f"Account with id [{account_id}] could not be found."
+        )
+
+    # Mengembalikan data account yang ditemukan dengan status 200 OK
+    return jsonify(account.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
 # UPDATE AN EXISTING ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["PUT"])
+def update_accounts(account_id):
+    """
+    Updates an Existing Account
+    This endpoint will update an Account based on the account_id and data posted
+    """
+    app.logger.info("Request to update an Account with id: %s", account_id)
 
-# ... place you code here to UPDATE an account ...
+    # 1. Cari akun berdasarkan id di database
+    account = Account.find(account_id)
+    if not account:
+        abort(
+            status.HTTP_404_NOT_FOUND, 
+            f"Account with id [{account_id}] could not be found."
+        )
+
+    # 2. Validasi format konten yang dikirim (harus application/json)
+    check_content_type("application/json")
+
+    # 3. Perbarui data model dengan data baru yang dikirim dari request body
+    account.deserialize(request.get_json())
+    
+    # 4. Simpan perubahan tersebut ke database
+    account.update()
+
+    # 5. Kembalikan data yang diperbarui beserta kode 200 OK
+    return jsonify(account.serialize()), status.HTTP_200_OK
 
 
 ######################################################################
 # DELETE AN ACCOUNT
 ######################################################################
+@app.route("/accounts/<int:account_id>", methods=["DELETE"])
+def delete_accounts(account_id):
+    """
+    Delete an Account
+    This endpoint will delete an Account based on the account_id that is requested
+    """
+    app.logger.info("Request to delete an Account with id: %s", account_id)
 
-# ... place you code here to DELETE an account ...
+    # 1. Cari akun berdasarkan id di database
+    account = Account.find(account_id)
+    
+    # 2. Jika akun ditemukan, lakukan penghapusan
+    if account:
+        account.delete()
+
+    # 3. Kembalikan respons kosong (make_response) bersama kode status 204 NO CONTENT
+    return make_response("", status.HTTP_204_NO_CONTENT)
 
 
 ######################################################################
